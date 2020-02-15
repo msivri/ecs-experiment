@@ -5,11 +5,18 @@ using Unity.Jobs;
 [AlwaysSynchronizeSystem]
 public class SelectableComponentSystem : JobComponentSystem
 {
+    private EntityQuery managerQuery;
+
+    protected override void OnCreate()
+    {
+        base.OnCreate();  
+        managerQuery = GetEntityQuery(ComponentType.ReadOnly<ManagerSelection>());
+    }
+
     protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
         var physicsWorldSystem = World.GetExistingSystem<Unity.Physics.Systems.BuildPhysicsWorld>();
         var collisionWorld = physicsWorldSystem.PhysicsWorld.CollisionWorld;
-        var managerQuery = GetEntityQuery(ComponentType.ReadOnly<ManagerSelection>());
         var managerEntities = managerQuery.ToComponentDataArray<ManagerSelection>(Unity.Collections.Allocator.TempJob);
         var managerEntity = managerEntities[0];
         var hasSelection = managerEntity.HasSelection;
