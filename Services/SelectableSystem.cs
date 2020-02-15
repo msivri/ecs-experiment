@@ -12,20 +12,14 @@ public class SelectableComponentSystem : JobComponentSystem
         var managerQuery = GetEntityQuery(ComponentType.ReadOnly<ManagerSelection>());
         var managerEntities = managerQuery.ToComponentDataArray<ManagerSelection>(Unity.Collections.Allocator.TempJob);
         var managerEntity = managerEntities[0];
-        var selectedEntity = managerEntity.HasSelection ? collisionWorld.Bodies[managerEntity.SelectionRigidBodyIndex].Entity : Entity.Null;
-
-        var handle = Entities.ForEach((Entity entity, ref Selectable selectable) =>
-        {
-            if (!managerEntity.HasSelection || entity != selectedEntity) selectable.IsSelected = false;
-            else
-                selectable.IsSelected = true;
-
-        }).Schedule(inputDeps);
-
-
-        handle.Complete();
-
+        var hasSelection = managerEntity.HasSelection;
+        var selectedEntity = hasSelection ? collisionWorld.Bodies[managerEntity.SelectionRigidBodyIndex].Entity : Entity.Null;
         managerEntities.Dispose();
+
+        Entities.ForEach((Entity entity, ref Selectable selectable) =>
+        {
+            selectable.IsSelected = hasSelection && entity == selectedEntity; 
+        }).Run(); 
 
         return default;
     }
